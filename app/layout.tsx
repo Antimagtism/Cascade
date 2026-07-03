@@ -12,9 +12,7 @@ export const metadata: Metadata = {
   description: "Cascade v1.0 by Antimagtism: A powerful, simple, and intuitive tool for creating and developing web application with ease.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+export default function RootLayout({ children, }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
