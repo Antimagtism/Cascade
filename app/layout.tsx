@@ -18,7 +18,7 @@ export default function RootLayout({ children, }: Readonly<{
   return (
     <html lang="en" className={geist.className}>
       <body>
-        <Navbar />
+        <Navbar/>
         <main>{children}</main>
         </body>
     </html>
