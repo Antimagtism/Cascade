@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
                 "unknown";
             
         const ipLimited = await checkRateLimit(ip);
+        
         if (ipLimited) return ipLimited;
 
         const result = await logout();
@@ -17,20 +18,24 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: false,
                 message: result.error
+                
             }, { status: 500 })
         }
 
         return NextResponse.json({
             success: true,
             message: result.message
+            
         }, { status: 200 })
     }
 
     catch (error) {
         console.error("Error during logout:", error);
+
         return NextResponse.json({
             success: false,
             message: "An error occurred during logout."
+
         }, { status: 500 })
     }
 }

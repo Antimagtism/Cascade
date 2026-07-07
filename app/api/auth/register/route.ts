@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { login } from "@/services/auth/login";
+import { RegisterSchema } from "@/lib/validators/auth/register";
+import { register } from "@/services/auth/register"
 import { checkRateLimit } from "@/lib/rateLimit";
-import { LoginSchema } from "@/lib/validators/auth/login";
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        const parsed = LoginSchema.safeParse(body);
+        const parsed = RegisterSchema.safeParse(body);
 
         if (!parsed.success) {
             return NextResponse.json({
                 success: false,
-                message: "Invalid request body.",
+                message: parsed.error.issues[0].message,
 
             }, { status: 400 })
         }
 
-        const { email, password } = parsed.data;
+        const { email } = parsed.data;
 
         const ip = request.headers.get("x-real-ip") ?? 
                 request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
@@ -27,34 +27,37 @@ export async function POST(request: NextRequest) {
 
         if (ipLimited) return ipLimited;
 
-        const limited = await checkRateLimit(
-            `${ip}:${email.toLowerCase()}`
+        const registerLimited = await checkRateLimit(
+            `${ip}:register:${email}`
         );
 
-        if (limited) return limited;
+        if (registerLimited) return registerLimited;
 
-        const result = await login({ email, password });
+        const result = await register(parsed.data);
 
-        if (!result.success) { 
+        if (!result.success) {
             return NextResponse.json({
                 success: false,
-                message: result.error
+                message: result.error,
 
-            }, { status: 401 })
+            }, { status: 400 })
         }
 
         return NextResponse.json({
             success: true,
+            message: "Account created successfully.",
             user: result.user,
 
-        }, { status: 200 })
-    }
+        }, { status: 201 })
+    } 
+    
+    catch (error) {
+        console.error(error);
 
-    catch {
         return NextResponse.json({
             success: false,
-            message: "Invalid request body."
+            message: "Internal server error"
 
-        }, { status: 400 })
+        }, { status: 500 })
     }
-}
+} 
